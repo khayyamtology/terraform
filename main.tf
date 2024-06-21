@@ -2,7 +2,7 @@
 
 # terraform {
 #   backend "s3" {
-#     bucket         = "my-terraform-state-bucket"
+#     bucket         = "kk-terraform-state-bucket"
 #     key            = "terraform/state"
 #     region         = "us-east-1"
 #     dynamodb_table = "terraform-lock-table"
@@ -11,7 +11,7 @@
 # }
 
 provider "aws" {
-  region = "us-east-1" # Set to the user's preferred region
+  region = "us-east-1" 
 }
 
 module "vpc" {
@@ -50,7 +50,7 @@ output "ecs_cluster_id" {
   value = module.ecs_cluster.cluster_id
 }
 
-# Ensure that ECS cluster deletion happens before VPC deletion
+# To ensure that ECS cluster deletion happens before VPC deletion
 resource "null_resource" "cleanup" {
   depends_on = [
     module.ecs_cluster,
