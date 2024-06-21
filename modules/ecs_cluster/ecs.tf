@@ -1,5 +1,3 @@
-# modules/ecs_cluster/main.tf
-
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "${var.cluster_name}-ecs-task-execution-role"
 
@@ -75,6 +73,13 @@ resource "aws_ecs_service" "this" {
 
 resource "aws_security_group" "ecs" {
   vpc_id = var.vpc_id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   egress {
     from_port   = 0

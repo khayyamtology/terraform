@@ -1,5 +1,3 @@
-# modules/vpc/variables.tf
-
 variable "vpc_name" {
   description = "The name of the VPC"
   type        = string
@@ -15,8 +13,8 @@ variable "private_subnets" {
   type        = list(string)
 }
 
-variable "enable_nat_gateway" {
-  description = "Enable NAT Gateway"
-  type        = bool
-  default     = false
+variable "region" {
+  description = "The AWS region"
+  type        = string
+  default     = "us-east-1"
 }

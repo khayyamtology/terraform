@@ -1,7 +1,7 @@
-# modules/vpc/main.tf
-
 resource "aws_vpc" "this" {
   cidr_block = var.cidr_block
+  enable_dns_support = true
+  enable_dns_hostnames = true
   tags = {
     Name = var.vpc_name
   }
@@ -14,13 +14,6 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
   tags = {
     Name = "${var.vpc_name}-private-${count.index + 1}"
-  }
-}
-
-resource "aws_internet_gateway" "this" {
-  vpc_id = aws_vpc.this.id
-  tags = {
-    Name = "${var.vpc_name}-igw"
   }
 }
 
@@ -37,9 +30,8 @@ resource "aws_route_table_association" "private" {
   route_table_id = aws_route_table.private.id
 }
 
-# Ensure security groups are deleted
 resource "aws_security_group" "this" {
-  count = 2 # Adjust according to your setup
+  count = 2
   vpc_id = aws_vpc.this.id
   tags = {
     Name = "${var.vpc_name}-sg-${count.index + 1}"
@@ -54,4 +46,17 @@ resource "aws_security_group_rule" "allow_all_outbound" {
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.this[count.index].id
+}
+
+# VPC Endpoint for ECR
+resource "aws_vpc_endpoint" "ecr" {
+  vpc_id       = aws_vpc.this.id
+  service_name = "com.amazonaws.${var.region}.ecr.dkr"
+  subnet_ids   = aws_subnet.private[*].id
+  security_group_ids = flatten([for sg in aws_security_group.this : sg.id])
+  vpc_endpoint_type = "Interface"
+  private_dns_enabled = true
+  tags = {
+    Name = "${var.vpc_name}-ecr-endpoint"
+  }
 }

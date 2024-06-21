@@ -1,13 +1,11 @@
-# main.tf
-
 terraform {
-  # backend "s3" {
-  #   bucket         = "my-terraform-state-bucket"
-  #   key            = "terraform/state"
-  #   region         = "us-east-1"
-  #   dynamodb_table = "terraform-lock-table"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "kk-ecs-fargate-terraform-remote-state"
+    key            = "terraform/state"
+    region         = "us-east-1"
+    dynamodb_table = "kk-terraform-lock-table"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
@@ -20,7 +18,7 @@ module "vpc" {
   vpc_name   = "kk-custom-vpc"
   cidr_block = "10.163.10.0/24"
   private_subnets = ["10.163.10.0/26", "10.163.10.64/26"]
-  enable_nat_gateway = false
+  region = "us-east-1"
 }
 
 module "ecr" {
