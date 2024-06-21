@@ -1,25 +1,25 @@
 # main.tf
 
-# terraform {
-#   backend "s3" {
-#     bucket         = "kk-terraform-state-bucket"
-#     key            = "terraform/state"
-#     region         = "us-east-1"
-#     dynamodb_table = "terraform-lock-table"
-#     encrypt        = true
-#   }
-# }
+terraform {
+  # backend "s3" {
+  #   bucket         = "my-terraform-state-bucket"
+  #   key            = "terraform/state"
+  #   region         = "us-east-1"
+  #   dynamodb_table = "terraform-lock-table"
+  #   encrypt        = true
+  # }
+}
 
 provider "aws" {
-  region = "us-east-1" 
+  region = "us-east-1" # Set to the user's preferred region
 }
 
 module "vpc" {
   source = "./modules/vpc"
 
-  vpc_name           = "kk-custom-vpc"
-  cidr_block         = "10.163.10.0/24"
-  private_subnets    = ["10.163.10.0/26", "10.163.10.64/26"]
+  vpc_name   = "kk-custom-vpc"
+  cidr_block = "10.163.10.0/24"
+  private_subnets = ["10.163.10.0/26", "10.163.10.64/26"]
   enable_nat_gateway = false
 }
 
@@ -50,10 +50,11 @@ output "ecs_cluster_id" {
   value = module.ecs_cluster.cluster_id
 }
 
-# To ensure that ECS cluster deletion happens before VPC deletion
+# Ensure that ECS cluster deletion happens before VPC deletion
 resource "null_resource" "cleanup" {
   depends_on = [
     module.ecs_cluster,
+    module.ecr,
   ]
 
   provisioner "local-exec" {
