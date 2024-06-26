@@ -1,47 +1,38 @@
-terraform {
-  backend "s3" {
-    bucket         = "kk-ecs-fargate-terraform-remote-state"
-    key            = "terraform/state"
-    region         = "us-east-1"
-    dynamodb_table = "kk-terraform-lock-table"
-    encrypt        = true
-  }
-}
-
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
 }
 
 module "vpc" {
-  source          = "./modules/vpc"
-  vpc_name        = "kk-custom-vpc"
-  cidr_block      = "10.163.10.0/24"
-  private_subnets = ["10.163.10.0/26", "10.163.10.64/26"]
-  region          = "us-east-1"
+  source = "./modules/vpc"
+  vpc_name   = var.vpc_name
+  cidr_block = var.cidr_block
+  private_subnets = var.private_subnets
+  region = var.region
 }
 
 module "ecr" {
-  source          = "./modules/ecr"
-  repository_name = "kk-sample-repo"
+  source = "./modules/ecr"
+  repository_name = var.repository_name
+}
+
+resource "null_resource" "build_and_push_docker_image" {
+  provisioner "local-exec" {
+    command = "./build_and_push.sh ${module.ecr.repository_url} ${var.region}"
+    environment = {
+      AWS_PROFILE = "default"
+    }
+  }
+
+  depends_on = [module.ecr]
 }
 
 module "ecs_cluster" {
-  source             = "./modules/ecs_cluster"
-  cluster_name       = "kk-ecs-cluster"
+  source = "./modules/ecs_cluster"
+  cluster_name       = var.cluster_name
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
-  repository_url     = module.ecr.repository_url
+  repository_url     = "${module.ecr.repository_url}:latest"
   ecs_security_group = module.vpc.security_group_ids.ecs
-}
-
-output "vpc_id" {
-  value = module.vpc.vpc_id
-}
-
-output "ecr_repository_url" {
-  value = module.ecr.repository_url
-}
-
-output "ecs_cluster_id" {
-  value = module.ecs_cluster.cluster_id
+  region             = var.region
+  depends_on         = [null_resource.build_and_push_docker_image]
 }

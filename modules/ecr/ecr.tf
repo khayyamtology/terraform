@@ -1,25 +1,9 @@
-# modules/ecr/main.tf
-
 resource "aws_ecr_repository" "this" {
   name = var.repository_name
-  force_delete = true
-}
 
-resource "aws_ecr_repository_policy" "this" {
-  repository = aws_ecr_repository.this.name
+  image_scanning_configuration {
+    scan_on_push = true
+  }
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = "*"
-        Action = [
-          "ecr:GetDownloadUrlForLayer",
-          "ecr:BatchGetImage",
-          "ecr:BatchCheckLayerAvailability"
-        ]
-      }
-    ]
-  })
+  image_tag_mutability = "MUTABLE"
 }

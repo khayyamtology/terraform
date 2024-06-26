@@ -25,10 +25,10 @@ resource "aws_iam_role_policy" "ecs_task_execution_policy" {
       {
         Effect = "Allow",
         Action = [
-          "ecr:GetAuthorizationToken",
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability",
+          "ecr:GetAuthorizationToken",
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret",
           "logs:CreateLogStream",
@@ -54,8 +54,8 @@ resource "aws_ecs_task_definition" "this" {
 
   container_definitions = jsonencode([
     {
-      name  = "my-app"
-      image = "${var.repository_url}:latest"
+      name  = "kk-sample-app"
+      image = var.repository_url
       essential = true
 
       portMappings = [
@@ -69,7 +69,7 @@ resource "aws_ecs_task_definition" "this" {
         logDriver = "awslogs"
         options = {
           "awslogs-group"         = "/ecs/${var.cluster_name}"
-          "awslogs-region"        = "us-east-1"
+          "awslogs-region"        = var.region
           "awslogs-stream-prefix" = "ecs"
         }
       }
