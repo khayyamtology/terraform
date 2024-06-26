@@ -9,31 +9,29 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1" # Set to the user's preferred region
-}
-
-module "vpc" {
-  source = "./modules/vpc"
-
-  vpc_name   = "kk-custom-vpc"
-  cidr_block = "10.163.10.0/24"
-  private_subnets = ["10.163.10.0/26", "10.163.10.64/26"]
   region = "us-east-1"
 }
 
-module "ecr" {
-  source = "./modules/ecr"
+module "vpc" {
+  source          = "./modules/vpc"
+  vpc_name        = "kk-custom-vpc"
+  cidr_block      = "10.163.10.0/24"
+  private_subnets = ["10.163.10.0/26", "10.163.10.64/26"]
+  region          = "us-east-1"
+}
 
+module "ecr" {
+  source          = "./modules/ecr"
   repository_name = "kk-sample-repo"
 }
 
 module "ecs_cluster" {
-  source = "./modules/ecs_cluster"
-
+  source             = "./modules/ecs_cluster"
   cluster_name       = "kk-ecs-cluster"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_subnet_ids
   repository_url     = module.ecr.repository_url
+  ecs_security_group = module.vpc.security_group_ids.ecs
 }
 
 output "vpc_id" {
@@ -46,16 +44,4 @@ output "ecr_repository_url" {
 
 output "ecs_cluster_id" {
   value = module.ecs_cluster.cluster_id
-}
-
-# Ensure that ECS cluster deletion happens before VPC deletion
-resource "null_resource" "cleanup" {
-  depends_on = [
-    module.ecs_cluster,
-    module.ecr,
-  ]
-
-  provisioner "local-exec" {
-    command = "echo 'Clean up complete'"
-  }
 }

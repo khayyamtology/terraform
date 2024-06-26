@@ -1,5 +1,5 @@
 variable "cluster_name" {
-  description = "The name of the ECS Cluster"
+  description = "The name of the ECS cluster"
   type        = string
 }
 
@@ -15,5 +15,10 @@ variable "private_subnet_ids" {
 
 variable "repository_url" {
   description = "The URL of the ECR repository"
+  type        = string
+}
+
+variable "ecs_security_group" {
+  description = "The ID of the ECS security group"
   type        = string
 }

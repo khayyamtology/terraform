@@ -1,5 +1,3 @@
-# modules/vpc/outputs.tf
-
 output "vpc_id" {
   value = aws_vpc.this.id
 }
@@ -9,5 +7,8 @@ output "private_subnet_ids" {
 }
 
 output "security_group_ids" {
-  value = aws_security_group.this[*].id
+  value = {
+    ecs            = aws_security_group.ecs.id
+    vpc_endpoints  = aws_security_group.vpc_endpoints.id
+  }
 }
