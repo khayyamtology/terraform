@@ -8,9 +8,9 @@ resource "aws_vpc" "this" {
 }
 
 resource "aws_subnet" "private" {
-  count             = length(var.private_subnets)
-  vpc_id            = aws_vpc.this.id
-  cidr_block        = var.private_subnets[count.index]
+  count                   = length(var.private_subnets)
+  vpc_id                  = aws_vpc.this.id
+  cidr_block              = var.private_subnets[count.index]
   map_public_ip_on_launch = false
   tags = {
     Name = "${var.vpc_name}-private-${count.index + 1}"
@@ -111,5 +111,18 @@ resource "aws_vpc_endpoint" "ecs_agent" {
   private_dns_enabled = true
   tags = {
     Name = "${var.vpc_name}-ecs-agent-endpoint"
+  }
+}
+
+# VPC Endpoint for Secrets Manager
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = aws_vpc.this.id
+  service_name        = "com.amazonaws.${var.region}.secretsmanager"
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+  tags = {
+    Name = "${var.vpc_name}-secretsmanager-endpoint"
   }
 }
